@@ -98,3 +98,246 @@ The `initial` directory contains the starting project that you will build upon.
 
 The `final` directory contains the finished project that you will build.
 
+
+== Running Spring Application 
+
+The application in initial directory is a basic sample Spring app having 3 endpoints:
+
+- "/" is the homepage returning "Welcome" string
+- "/put" is the page where key and values can be put on a concurrent hash map.
+- "/get" is the page where the values in the map can be obtained by keys.
+
+Build the app using Maven:
+
+----
+mvn package
+----
+
+Run the application:
+----
+java -jar target/??.jar
+----
+
+
+Now your app is runnning on localhost:8080. You can test by following requests:
+
+----
+curl localhost:8080
+curl localhost:8080/put?key=key1&value=hazelcast
+curl localhost:8080/get?key=key1
+----
+
+This part was an introduction of the applicaiton. You can stop your application by CTRL + C.
+
+== Dockerizing the App
+
+To create the docker image of the application, add following line into pom.xml file.
+
+Under properties:
+----
+<docker.image.prefix>springio</docker.image.prefix>
+----
+Under plugins:
+----
+<plugin>
+    <groupId>com.spotify</groupId>
+    <artifactId>dockerfile-maven-plugin</artifactId>
+    <version>1.4.9</version>
+    <configuration>
+        <repository>${docker.image.prefix}/${project.artifactId}</repository>
+    </configuration>
+</plugin>
+----
+
+Then create the Dockerfile under `final` directory named "Dockerfile" containing the content below:
+
+----
+Dockerfile
+
+FROM openjdk:8-jdk-alpine
+
+VOLUME /tmp
+
+ARG JAR_FILE=target/hazelcast-spring-app-0.1.0.jar
+
+ADD ${JAR_FILE} hazelcast-spring-demo.jar
+
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/hazelcast-spring-demo.jar"]
+----
+
+To create the Docker image of the app, first rebuild the app:
+----
+mvn clean package
+----
+Then create image file:
+----
+docker build -t hazelcast-spring-demo .
+----
+
+Now, the image must be seen among the docker images:
+----
+docker images
+
+<ss goes here>
+----
+
+== Running the app in container
+
+Now that the Docker image is ready, check if the image runs properly:
+
+----
+docker run -p 5000:8080 hazelcast-spring-demo 
+----
+
+Test the app on the port 5000:
+----
+curl localhost:5000
+curl localhost:5000/put?key=key1&value=hazelcast
+curl localhost:5000/get?key=key1
+----
+
+If you see the same responses as you get when the app is run without container, that means it's all OK with the image.
+
+To stop the container, get the container ID first:
+----
+docker ps
+----
+Then find the application's container ID and kill the container:
+----
+docker stop [CONTAINER-ID]
+----
+
+
+== Starting and preparing your cluster for deployment
+
+Now that you have a proper docker image, deploy the app to kuberntes pods.
+
+Start your {kube} cluster.
+
+****
+[system]#*{win} | {mac}*#
+
+Start your Docker Desktop environment. Make sure "Docker Desktop is running" and "Kubernetes is running" status are updated. 
+
+ifdef::docker-desktop-description[]
+{docker-desktop-description}
+endif::[]
+
+[system]#*{linux}*#
+
+Run the following command from a command line:
+
+[subs="attributes"]
+```
+ifdef::minikube-start[]
+{minikube-start}
+endif::[]
+ifndef::minikube-start[]
+minikube start
+endif::[]
+```
+
+ifdef::minikube-description[]
+{minikube-description}
+endif::[]
+****   
+
+=== Validate {kube} environment
+
+Next, validate that you have a healthy {kube} environment by running the following command from the command line.
+
+```
+kubectl get nodes
+```
+
+This command should return a `Ready` status for the master node.
+
+****
+[system]#*{win} | {mac}*#
+
+You do not need to do any other step.
+
+[system]#*{linux}*#
+
+Run the following command to configure the Docker CLI to use Minikube's Docker daemon.
+After you run this command, you will be able to interact with Minikube's Docker daemon and build new
+images directly to it from your host machine:
+
+```
+eval $(minikube docker-env)
+```
+****
+
+
+Create kubernetes.yaml under `initial` directory with the same content in the `final/kubernetes.yaml` file.
+
+This file defines two {kube} resources: one statefulset and one service. 
+StatefulSet is preferred solution for Hazelcast because it enables controlled scale out/in of your microservices 
+for easy data distribution. To learn more about StatefulSet, you can visit Kubernetes documentation
+https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/
+
+By default, we create 2 replicas of `hazelcast-caching` microservice behind the `hazelcast-caching-service` which forwards
+requests to one of the pods available in the kubernetes cluster.
+
+`MY_POD_NAME` is an environment variable made available to the pods so that each microservice knows which pod they are in.
+This is going to be used in this guide in order to show which pod is responding to the http request.
+
+Run the following command to deploy the resources as defined in kubernetes.yaml:
+----
+kubectl apply -f kubernetes.yaml
+----
+Run the following command to check the status of your pods:
+----
+kubectl get pods
+----
+
+You'll see an output similar to the following if all the pods are healthy and running:
+----
+<output here>
+----
+
+Send request to port :31000 and see the pods responding.
+----
+curl localhost:31000
+
+<output here>
+----
+
+And add a value to the map:
+----
+
+curl localhost:31000/put?key=key1&value=hazelcast
+
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
+
+curl localhost:31000/get?key=key1
+
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
+{"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
+----
+
+As can be seen, data is not shared between nodes. Here is where Hazelcast comes into action.
+Kill active pods under `initial` directory by:
+----
+kubectl delete -f kubernetes.yaml
+----
+
+== Hazelcast Caching among Kubetnetes pods
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
