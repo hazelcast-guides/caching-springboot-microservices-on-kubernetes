@@ -124,9 +124,9 @@ $ > java -jar target/hazelcast-spring-app-0.1.0.jar
 Now your app is runnning on localhost:8080. You can test by following requests:
 
 ----
-$ > curl localhost:8080
-$ > curl localhost:8080/put?key=key1&value=hazelcast
-$ > curl localhost:8080/get?key=key1
+$ > curl "localhost:8080"
+$ > curl "localhost:8080/put?key=key1&value=hazelcast"
+$ > curl "localhost:8080/get?key=key1"
 ----
 
 This part was an introduction of the applicaiton. You can stop your application by CTRL + C.
@@ -155,7 +155,6 @@ Under plugins:
 Then create the Dockerfile under `initial` directory named "Dockerfile" containing the instructions for creatinf docker image:
 
 ----
-Dockerfile
 
 FROM openjdk:8-jdk-alpine
 
@@ -179,9 +178,13 @@ docker build -t hazelcast-spring-demo .
 
 Now, the image must be seen among the docker images:
 ----
-docker images
+> docker images
 
-<ss goes here>
+	REPOSITORY                                 TAG                 IMAGE ID            CREATED             SIZE
+	hazelcast-spring-demo                      latest              5f65a62b0aa0        19 seconds ago      122MB
+	openjdk                                    8-jdk-alpine        a3562aa0b991        5 weeks ago         105MB
+	k8s.gcr.io/kube-proxy-amd64                v1.10.11            7387003276ac        6 months ago        98.3MB
+	k8s.gcr.io/kube-apiserver-amd64            v1.10.11            e851a7aeb6e8        6 months ago        228MB
 ----
 
 == Running the app in container
@@ -194,9 +197,9 @@ docker run -p 5000:8080 hazelcast-spring-demo
 
 Test the app on the port 5000:
 ----
-curl localhost:5000
-curl localhost:5000/put?key=key1&value=hazelcast
-curl localhost:5000/get?key=key1
+curl "localhost:5000"
+curl "localhost:5000/put?key=key1&value=hazelcast"
+curl "localhost:5000/get?key=key1"
 ----
 
 If you see the same responses as the ones you get when the app is run without container, that means it's all OK with the image.
@@ -294,24 +297,24 @@ kubectl get pods
 
 You'll see an output similar to the following if all the pods are healthy and running:
 ----
-<output here>
+NAME                             READY     STATUS    RESTARTS   AGE
+hazelcast-spring-statefulset-0   1/1       Running   0          7s
+hazelcast-spring-statefulset-1   1/1       Running   0          5s
 ----
 
 Send request to port :31000 and see the pods responding.
 ----
 curl localhost:31000
-
-<output here>
 ----
 
 And add a value to the map and then get the value:
 ----
 
-> curl localhost:31000/put?key=key1&value=hazelcast
+> curl "localhost:31000/put?key=key1&value=hazelcast"
 
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
 
-> curl localhost:31000/get?key=key1
+> curl "localhost:31000/get?key=key1"
 
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
 	{"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
@@ -365,13 +368,14 @@ kubectl get pods
 
 You should also check if hazelcast cluster is formed by checking one of the pod’s log file:
 ----
-kubectl logs hazelcast-caching-statefulset-1
+kubectl logs hazelcast-spring-statefulset-1
 ----
 You must see such a response at the end of the log:
+
 ----
 Members {size:2, ver:2} [
-	Member [172.17.0.4]:5701 - 71009ef7-ee18-45f0-8a8f-e9321931e9ce this
-	Member [172.17.0.5]:5701 - 99222e16-93e5-4453-ac9e-cdf3e80069c6
+	Member [10.1.0.52]:5701 - ac54036d-c16f-40ae-9531-93e6f0683cf9 this
+	Member [10.1.0.53]:5701 - d963bb82-3842-49fd-a522-82c8543bdb9d
 ]
 ----
 
@@ -399,7 +403,7 @@ Scale the cluster with one more pod and see that you still retrieve the shared d
 
 [role='command']
 ```
-kubectl scale statefulset hazelcast-caching-statefulset --replicas=3
+kubectl scale statefulset hazelcast-spring-statefulset --replicas=3
 ```
 
 Run following command to see the latest status of the pods
@@ -420,8 +424,12 @@ hazelcast-caching-statefulset-2   1/1       Running   0          31s
 Run the following command again to see the output
 [role='command']
 ```
-while true; do curl http://localhost:31000/get?key=1;echo; sleep 2; done
+while true; do curl http://localhost:31000/get?key=key1;echo; sleep 2; done
 ```
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-2"}
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"}
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-2"}
+{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"}
 
 As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
 

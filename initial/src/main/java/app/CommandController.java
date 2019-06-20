@@ -1,4 +1,4 @@
-package io.openliberty.guides.hazelcast;
+package guides.hazelcast.spring;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
