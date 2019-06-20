@@ -1,12 +1,14 @@
 package io.openliberty.guides.hazelcast;
 
+import com.hazelcast.core.HazelcastInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 public class CommandController {
@@ -14,10 +16,12 @@ public class CommandController {
     @Value("#{environment.MY_POD_NAME}")
     private String podName;
 
-    Map<String,String> keyValueStore = new ConcurrentHashMap<>();
 
-    private Map<String,String> retrieveMap() {
-        return keyValueStore;
+    @Autowired
+    HazelcastInstance hazelcastInstance;
+
+    private ConcurrentMap<String,String> retrieveMap() {
+        return hazelcastInstance.getMap("map");
     }
 
     @RequestMapping("/put")
