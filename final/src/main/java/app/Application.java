@@ -1,6 +1,7 @@
 package io.openliberty.guides.hazelcast;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,9 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Application {
 
+    
+    @Value("#{environment.MY_POD_NAME}")
+    private String podName;
+
     @RequestMapping("/")
     public String homepage(){
-	return "Homepage\n";
+	return "Homepage hosted by: " + podName + "\n";
     }
 	
     public static void main(String[] args) {

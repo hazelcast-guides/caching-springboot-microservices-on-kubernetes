@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Created-By: Apache Maven 3.6.1
+Built-By: azcan
+Build-Jdk: 11.0.1
+Implementation-Title: hazelcast-spring-app
+Implementation-Version: 0.1.0
+Implementation-Vendor-Id: org.springframework
+Implementation-URL: https://projects.spring.io/spring-boot/#/spring-boot
+ -starter-parent/hazelcast-spring-app
+Main-Class: org.springframework.boot.loader.JarLauncher
+Start-Class: io.openliberty.guides.hazelcast.Application
+Spring-Boot-Version: 2.1.4.RELEASE
+Spring-Boot-Classes: BOOT-INF/classes/
+Spring-Boot-Lib: BOOT-INF/lib/
+
