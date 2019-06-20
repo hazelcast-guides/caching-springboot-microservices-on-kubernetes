@@ -322,22 +322,217 @@ Kill active pods under `initial` directory by:
 kubectl delete -f kubernetes.yaml
 ----
 
-== Hazelcast Caching among Kubetnetes pods
+== Hazelcast Caching among Kubernetes pods
+
+Update the pom.xml file by adding those dependencies:
+----
+<dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>3.11.2</version>
+</dependency>
+<dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-kubernetes</artifactId>
+            <version>1.3.1</version>
+</dependency>
+----
+Then modify the CommandController.java such that Hazelcast is used for map instead of concurrentHashMap of java.
+Also add config @Bean to Application.java file and hazelcast libraries as well. Those versions are the ones under `final` folder.
+
+Rebuild the app and create new image:
+
+----
+mvn clean package
+docker build -t hazelcast-spring-demo .
+----
+
+Before deploying on kubernetes, create rbac.yaml file as in the `final` directory. Role Based Access Controller(RBAC) configuration is used to give access to Kubernetes Master API from pods which runs microservices. Hazelcast requires a read access to autodiscover other hazelcast members and form hazelcast cluster.
+
+Run the following commands to deploy the resources as defined in kubernetes.yaml and rbac.yaml in the specified order:
+----
+kubectl apply -f rbac.yaml
+----
+----
+kubectl apply -f kubernetes.yaml
+----
+
+Run the following command to check the status of your pods:
+----
+kubectl get pods
+----
+
+You should also check if hazelcast cluster is formed by checking one of the pod’s log file:
+----
+kubectl logs hazelcast-caching-statefulset-1
+----
+You must see such a response at the end of the log:
+----
+Members {size:2, ver:2} [
+	Member [172.17.0.4]:5701 - 71009ef7-ee18-45f0-8a8f-e9321931e9ce this
+	Member [172.17.0.5]:5701 - 99222e16-93e5-4453-ac9e-cdf3e80069c6
+]
+----
+
+Now we expect all nodes to give the same value for the same key put on the map via one pod only. Let's try:
+
+----
+curl "http://localhost:31000/put?key=key1&value=hazelcast"
+
+ {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
+
+curl "http://localhost:31000/get?key=key1"
+
+ {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"}
+ {"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"}
+----
+
+As can be seen, the insertion is made on hazelcast-spring-statefulset-1 but both nodes gives the same value for the key now.
+
+== Scaling with Hazelcast
+
+Scale the cluster with one more pod and see that you still retrieve the shared data.
+
+[role='command']
+```
+kubectl scale statefulset hazelcast-caching-statefulset --replicas=3
+```
+
+Run following command to see the latest status of the pods
+[role='command']
+```
+kubectl get pods
+```
+
+As you can see, a new pod `hazelcast-caching-statefulset-2` has joined to the cluster.
+[source, role="no_copy"]
+----
+NAME                              READY     STATUS    RESTARTS   AGE
+hazelcast-caching-statefulset-0   1/1       Running   0          8m
+hazelcast-caching-statefulset-1   1/1       Running   0          8m
+hazelcast-caching-statefulset-2   1/1       Running   0          31s
+----
+
+Run the following command again to see the output
+[role='command']
+```
+while true; do curl 192.168.99.100:31000/get?key=1;echo; sleep 2; done
+```
+
+As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
+
+[source, role="no_copy"]
+----
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-1"}
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-2"}
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-0"}
+----
+
+== Testing microservices that are running on {kube}
+
+Create a testing class under `final/src/test/java/it/io/spring/guides/hazelcast/`
+named `HazelcastCachingIT.java` .The contents of the thest file is available under `finish` directoy.
+
+Also change the pom.xml file for the tests:
+----
+Under spring-boot-maven-plugin:
+
+<!-- test executions -->
+<executions>
+        <execution>
+            <id>pre-integration-test</id>
+            <goals>
+                <goal>start</goal>
+            </goals>
+            <configuration>
+                <skip>true</skip>
+            </configuration>
+        </execution>
+        <execution>
+            <id>post-integration-test</id>
+            <goals>
+                <goal>stop</goal>
+            </goals>
+            <configuration>
+                <skip>true</skip>
+            </configuration>
+        </execution>
+</executions>
+
+----
+
+----
+Under dependencies:
 
 
+<dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+</dependency>
+
+----
+
+The testHazelcastCache test makes sure that the /put endpoint is handled by one pod and /get methods returns the same data from the other kubernetes pod.
+
+It first puts a key/value pair to hazelcast-caching microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
+
+In order to run integration tests, you must have a running hazelcast-caching microservices in minikube environment. As you have gone through all previous steps, you already have it.
+
+navigate back to `initial` directory and run following:
+
+----
+mvn verify
+----
+Once you get the success message, start the test you've just created:
+----
+mvn -Dtest=HazelcastCachingIT test 
+----
 
 
+If the tests pass, you’ll see a similar output to the following:
+
+----
+< output here >
+----
 
 
+== Tearing down the environment
 
+When you no longer need your deployed microservices, you can delete all Kubernetes resources by running the kubectl delete command: You might need to wait up to 30 seconds as stateful sets kills pods one at a time.
 
+----
+kubectl delete -f kubernetes.yaml
+----
 
+****
+[system]#*{win} | {mac}*#
 
+Nothing more needs to be done for Docker Desktop.
 
+[system]#*{linux}*#
 
+Perform the following steps to return your environment to a clean state.
 
+. Point the Docker daemon back to your local machine:
++
+```
+eval $(minikube docker-env -u)
+```
 
+. Stop your Minikube cluster:
++
+```
+minikube stop
+```
 
+. Delete your cluster:
++
+```
+minikube delete
+```
 
+****
 
+== Great work! You’re done!
 
+You have just created a Spring Boot application, created the Docker image. First you runned the app on container. Then deployed to Kubernetes. You then added Hazelcast caching to the hazelcast-caching, tested with a simple curl command. You also scaled out the microservices and saw that data is shared between microservices As a last step, you ran integration tests against hazelcast-caching that was deployed in a Kubernetes cluster.
