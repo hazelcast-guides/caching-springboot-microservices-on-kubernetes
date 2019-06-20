@@ -412,13 +412,13 @@ Run following command to see the latest status of the pods
 kubectl get pods
 ```
 
-As you can see, a new pod `hazelcast-caching-statefulset-2` has joined to the cluster.
+As you can see, a new pod `hazelcast-spring-statefulset-2` has joined to the cluster.
 [source, role="no_copy"]
 ----
 NAME                              READY     STATUS    RESTARTS   AGE
-hazelcast-caching-statefulset-0   1/1       Running   0          8m
-hazelcast-caching-statefulset-1   1/1       Running   0          8m
-hazelcast-caching-statefulset-2   1/1       Running   0          31s
+hazelcast-spring-statefulset-0   1/1       Running   0          8m
+hazelcast-spring-statefulset-1   1/1       Running   0          8m
+hazelcast-spring-statefulset-2   1/1       Running   0          31s
 ----
 
 Run the following command again to see the output
@@ -431,13 +431,13 @@ while true; do curl http://localhost:31000/get?key=key1;echo; sleep 2; done
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-2"}
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"}
 
-As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
+As you can see, `hazelcast-spring-statefulset-2` is returning correct data.
 
 [source, role="no_copy"]
 ----
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-1"}
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-2"}
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-caching-statefulset-0"}
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-1"}
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-2"}
+{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-0"}
 ----
 
 == Testing microservices that are running on {kube}
@@ -486,9 +486,9 @@ Under dependencies:
 
 The test makes sure that the /put endpoint is handled by one pod and /get methods returns the same data from the other kubernetes pod.
 
-It first puts a key/value pair to hazelcast-caching microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
+It first puts a key/value pair to hazelcast-spring microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
 
-In order to run integration tests, you must have a running hazelcast-caching microservices in minikube environment. As you have gone through all previous steps, you already have it.
+In order to run integration tests, you must have a running hazelcast-spring microservices in minikube environment. As you have gone through all previous steps, you already have it.
 
 navigate back to `initial` directory and run following:
 
