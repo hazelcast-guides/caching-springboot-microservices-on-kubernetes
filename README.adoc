@@ -30,9 +30,9 @@ Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernete
 You will learn how to use Hazelcast distributed caching with Spring Boot and deploy to a local {kube} cluster.
 You will then create a Kubernetes Service which load balance between containers and verify that you can share data between Microservices.
 
-The microservice you will deploy is called `hazelcast-caching`. The `hazelcast-caching` microservice simply
+The microservice you will deploy is called `hazelcast-spring`. The `hazelcast-spring` microservice simply
 helps you put a data and read it back. As Kubernetes Service will send the request to different pod each time 
-you initiate the request, the data will be served by shared hazelcast cluster between `hazelcast-caching` pods.
+you initiate the request, the data will be served by shared hazelcast cluster between `hazelcast-spring` pods.
 
 You will use a local single-node {kube} cluster. However, you can deploy this application on any kubernetes distributions.
 
@@ -82,6 +82,8 @@ Complete the setup for your operating system:
 You will use `Minikube` as a single-node {kube} cluster that runs locally in a virtual machine.
 For Minikube installation instructions see the https://github.com/kubernetes/minikube#installation[minikube installation instructions^]. Make sure to pay attention to the requirements as they vary by platform.
 
+You will also need Maven to build the jar file. For Maven installation instructions see the https://maven.apache.org/install.html[maven installation instructions^].
+
 ****
 
 == Getting started
@@ -101,30 +103,30 @@ The `final` directory contains the finished project that you will build.
 
 == Running Spring Application 
 
-The application in initial directory is a basic sample Spring app having 3 endpoints:
+The application in initial directory is a basic SpringBoot app having 3 endpoints:
 
-- "/" is the homepage returning "Welcome" string
+- "/" is the homepage returning "Welcome" string only
 - "/put" is the page where key and values can be put on a concurrent hash map.
 - "/get" is the page where the values in the map can be obtained by keys.
 
-Build the app using Maven:
+Build the app using Maven in the `initial` directory:
 
 ----
-mvn package
+$ > mvn package
 ----
 
 Run the application:
 ----
-java -jar target/??.jar
+$ > java -jar target/hazelcast-spring-app-0.1.0.jar
 ----
 
 
 Now your app is runnning on localhost:8080. You can test by following requests:
 
 ----
-curl localhost:8080
-curl localhost:8080/put?key=key1&value=hazelcast
-curl localhost:8080/get?key=key1
+$ > curl localhost:8080
+$ > curl localhost:8080/put?key=key1&value=hazelcast
+$ > curl localhost:8080/get?key=key1
 ----
 
 This part was an introduction of the applicaiton. You can stop your application by CTRL + C.
@@ -132,13 +134,14 @@ This part was an introduction of the applicaiton. You can stop your application 
 == Dockerizing the App
 
 To create the docker image of the application, add following line into pom.xml file.
-
-Under properties:
 ----
+Under properties:
+
 <docker.image.prefix>springio</docker.image.prefix>
 ----
-Under plugins:
 ----
+Under plugins:
+
 <plugin>
     <groupId>com.spotify</groupId>
     <artifactId>dockerfile-maven-plugin</artifactId>
@@ -149,7 +152,7 @@ Under plugins:
 </plugin>
 ----
 
-Then create the Dockerfile under `final` directory named "Dockerfile" containing the content below:
+Then create the Dockerfile under `initial` directory named "Dockerfile" containing the instructions for creatinf docker image:
 
 ----
 Dockerfile
@@ -196,13 +199,13 @@ curl localhost:5000/put?key=key1&value=hazelcast
 curl localhost:5000/get?key=key1
 ----
 
-If you see the same responses as you get when the app is run without container, that means it's all OK with the image.
+If you see the same responses as the ones you get when the app is run without container, that means it's all OK with the image.
 
 To stop the container, get the container ID first:
 ----
 docker ps
 ----
-Then find the application's container ID and kill the container:
+Then find the application's container ID and stop the container:
 ----
 docker stop [CONTAINER-ID]
 ----
@@ -210,9 +213,7 @@ docker stop [CONTAINER-ID]
 
 == Starting and preparing your cluster for deployment
 
-Now that you have a proper docker image, deploy the app to kuberntes pods.
-
-Start your {kube} cluster.
+Now that you have a proper docker image, deploy the app to kuberntes pods. Start your {kube} cluster first.
 
 ****
 [system]#*{win} | {mac}*#
@@ -269,14 +270,14 @@ eval $(minikube docker-env)
 ****
 
 
-Create kubernetes.yaml under `initial` directory with the same content in the `final/kubernetes.yaml` file.
+After you're sure that a master node is ready, create kubernetes.yaml under `initial` directory with the same content in the `final/kubernetes.yaml` file.
 
 This file defines two {kube} resources: one statefulset and one service. 
 StatefulSet is preferred solution for Hazelcast because it enables controlled scale out/in of your microservices 
 for easy data distribution. To learn more about StatefulSet, you can visit Kubernetes documentation
 https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/
 
-By default, we create 2 replicas of `hazelcast-caching` microservice behind the `hazelcast-caching-service` which forwards
+By default, we create 2 replicas of `hazelcast-spring` microservice behind the `hazelcast-spring-service` which forwards
 requests to one of the pods available in the kubernetes cluster.
 
 `MY_POD_NAME` is an environment variable made available to the pods so that each microservice knows which pod they are in.
@@ -303,17 +304,17 @@ curl localhost:31000
 <output here>
 ----
 
-And add a value to the map:
+And add a value to the map and then get the value:
 ----
 
-curl localhost:31000/put?key=key1&value=hazelcast
+> curl localhost:31000/put?key=key1&value=hazelcast
 
-{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
 
-curl localhost:31000/get?key=key1
+> curl localhost:31000/get?key=key1
 
-{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
-{"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
+	{"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
 ----
 
 As can be seen, data is not shared between nodes. Here is where Hazelcast comes into action.
@@ -324,7 +325,7 @@ kubectl delete -f kubernetes.yaml
 
 == Hazelcast Caching among Kubernetes pods
 
-Update the pom.xml file by adding those dependencies:
+Now we will use Hazelcast Caching among the pods. Update the pom.xml file by adding those dependencies:
 ----
 <dependency>
             <groupId>com.hazelcast</groupId>
@@ -337,8 +338,8 @@ Update the pom.xml file by adding those dependencies:
             <version>1.3.1</version>
 </dependency>
 ----
-Then modify the CommandController.java such that Hazelcast is used for map instead of concurrentHashMap of java.
-Also add config @Bean to Application.java file and hazelcast libraries as well. Those versions are the ones under `final` folder.
+Then modify the CommandController.java such that Hazelcast is used in the map. Also add Hazelcast config to Application.java file and hazelcast libraries as well. 
+Those versions are the ones under `final` folder.
 
 Rebuild the app and create new image:
 
@@ -377,14 +378,17 @@ Members {size:2, ver:2} [
 Now we expect all nodes to give the same value for the same key put on the map via one pod only. Let's try:
 
 ----
-curl "http://localhost:31000/put?key=key1&value=hazelcast"
+> curl "http://localhost:31000/put?key=key1&value=hazelcast"
 
- {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
 
-curl "http://localhost:31000/get?key=key1"
+> curl "http://localhost:31000/get?key=key1"
 
- {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"}
- {"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"}
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
+
+> curl "http://localhost:31000/get?key=key1"
+
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"} --> pod0 responsed
 ----
 
 As can be seen, the insertion is made on hazelcast-spring-statefulset-1 but both nodes gives the same value for the key now.
@@ -416,7 +420,7 @@ hazelcast-caching-statefulset-2   1/1       Running   0          31s
 Run the following command again to see the output
 [role='command']
 ```
-while true; do curl 192.168.99.100:31000/get?key=1;echo; sleep 2; done
+while true; do curl http://localhost:31000/get?key=1;echo; sleep 2; done
 ```
 
 As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
@@ -431,7 +435,7 @@ As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
 == Testing microservices that are running on {kube}
 
 Create a testing class under `final/src/test/java/it/io/spring/guides/hazelcast/`
-named `HazelcastCachingIT.java` .The contents of the thest file is available under `finish` directoy.
+named `HazelcastCachingIT.java` .The contents of the test file is available under `finish` directoy.
 
 Also change the pom.xml file for the tests:
 ----
@@ -472,7 +476,7 @@ Under dependencies:
 
 ----
 
-The testHazelcastCache test makes sure that the /put endpoint is handled by one pod and /get methods returns the same data from the other kubernetes pod.
+The test makes sure that the /put endpoint is handled by one pod and /get methods returns the same data from the other kubernetes pod.
 
 It first puts a key/value pair to hazelcast-caching microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
 
@@ -535,4 +539,4 @@ minikube delete
 
 == Great work! You’re done!
 
-You have just created a Spring Boot application, created the Docker image. First you runned the app on container. Then deployed to Kubernetes. You then added Hazelcast caching to the hazelcast-caching, tested with a simple curl command. You also scaled out the microservices and saw that data is shared between microservices As a last step, you ran integration tests against hazelcast-caching that was deployed in a Kubernetes cluster.
+You have just run a Spring Boot application and created its Docker image. First you runned the app on a container and then deployed it to Kubernetes. You then added Hazelcast caching to the hazelcast-spring, tested with a simple curl command. You also scaled out the microservices and saw that data is shared between microservices. As a last step, you ran integration tests against hazelcast-spring that was deployed in a Kubernetes cluster.
