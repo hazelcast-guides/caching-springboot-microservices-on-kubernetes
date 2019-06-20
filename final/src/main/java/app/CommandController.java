@@ -1,4 +1,4 @@
-package io.openliberty.guides.hazelcast;
+package guides.hazelcast.spring;
 
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;

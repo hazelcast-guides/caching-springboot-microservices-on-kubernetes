@@ -1,3 +1,3 @@
-io/openliberty/guides/hazelcast/Application.class
-io/openliberty/guides/hazelcast/CommandController.class
-io/openliberty/guides/hazelcast/CommandResponse.class
+guides/hazelcast/spring/CommandResponse.class
+guides/hazelcast/spring/CommandController.class
+guides/hazelcast/spring/Application.class

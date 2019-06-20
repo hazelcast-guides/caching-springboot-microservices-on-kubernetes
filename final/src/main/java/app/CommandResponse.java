@@ -1,4 +1,4 @@
-package io.openliberty.guides.hazelcast;
+package guides.hazelcast.spring;
 
 @SuppressWarnings("unused")
 public class CommandResponse {

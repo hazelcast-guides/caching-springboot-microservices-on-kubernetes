@@ -1,4 +1,4 @@
-package io.openliberty.guides.hazelcast;
+package guides.hazelcast.spring;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.JoinConfig;

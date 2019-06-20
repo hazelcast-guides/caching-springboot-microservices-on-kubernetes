@@ -8,7 +8,7 @@ Implementation-Vendor-Id: org.springframework
 Implementation-URL: https://projects.spring.io/spring-boot/#/spring-boot
  -starter-parent/hazelcast-spring-app
 Main-Class: org.springframework.boot.loader.JarLauncher
-Start-Class: io.openliberty.guides.hazelcast.Application
+Start-Class: guides.hazelcast.spring.Application
 Spring-Boot-Version: 2.1.4.RELEASE
 Spring-Boot-Classes: BOOT-INF/classes/
 Spring-Boot-Lib: BOOT-INF/lib/
