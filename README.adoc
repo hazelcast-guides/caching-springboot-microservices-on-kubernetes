@@ -1,0 +1,100 @@
+:projectid: kubernetes-caching-hazelcast-spring
+:page-layout: guide
+:page-duration: 15 minutes
+:page-releasedate: 2019-06-20
+:page-description: Explore how to use caching in microservices within Kubernetes environment.
+:page-tags: ['Hazelcast', 'Caching', 'Microservices', 'Kubernetes', 'Containers','Spring Boot' , 'Minikube']
+:page-permalink: /guides/{projectid}
+:page-related-guides: ['docker', 'kubernetes-intro']
+:source-highlighter: prettify
+:page-seo-title: Caching in microservices with Hazelcast Tutorial
+:page-seo-description: How to use Hazelcast with microservices
+= Caching Microservices with Hazelcast in Kubernetes
+
+Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernetes
+
+:minikube-ip: 192.168.99.100
+:kube: Kubernetes
+:hashtag: #
+:win: WINDOWS
+:mac: MAC
+:linux: LINUX
+:hazelcast: Hazelcast
+
+// =================================================================================================
+// What you'll learn
+// =================================================================================================
+
+== What you'll learn
+
+You will learn how to use Hazelcast distributed caching with Spring Boot and deploy to a local {kube} cluster.
+You will then create a Kubernetes Service which load balance between containers and verify that you can share data between Microservices.
+
+The microservice you will deploy is called `hazelcast-caching`. The `hazelcast-caching` microservice simply
+helps you put a data and read it back. As Kubernetes Service will send the request to different pod each time 
+you initiate the request, the data will be served by shared hazelcast cluster between `hazelcast-caching` pods.
+
+You will use a local single-node {kube} cluster. However, you can deploy this application on any kubernetes distributions.
+
+== What is {hazelcast}?
+Hazelcast is an open source In-Memory Data Grid (IMDG). It provides elastically scalable distributed In-Memory computing, 
+widely recognized as the fastest and most scalable approach to application performance.
+
+Hazelcast is designed to scale up to hundreds and thousands of members. 
+Simply add new members and they will automatically discover the cluster 
+and will linearly increase both memory and processing capacity
+
+== Why Spring Boot?
+
+Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".
+To learn more about Spring Boot. 
+http://spring.io/projects/spring-boot
+
+// =================================================================================================
+// Prerequisites
+// =================================================================================================
+
+== Prerequisites
+
+Before you begin, have the following tools installed:
+
+
+First, you will need a containerization software for building containers. {kube} supports a variety
+ of container types. You will use `Docker` in this guide. For installation instructions, refer to the https://docs.docker.com/install/[official Docker documentation^].
+
+****
+[system]#*{win} | {mac}*#
+
+Use Docker Desktop, where a local {kube} environment is pre-installed and enabled. If you do not see the {kube} tab then you have an older version of Docker Desktop; upgrade to the latest version.
+
+Complete the setup for your operating system:
+
+ - Set up  https://docs.docker.com/docker-for-windows/#kubernetes[Docker for Windows^]. 
+ On the Docker for Windows _General Setting_ page, ensure that the option `Expose daemon on 
+ tcp://localhost:2375 without TLS` is enabled. This is required by the `dockerfile-maven` 
+ part of the build.
+ - Set up https://docs.docker.com/docker-for-mac/#kubernetes[Docker for Mac^].
+
+- After following one of the sets of instructions, ensure that {kube} (not Swarm) is selected as the orchestrator in Docker Preferences.
+
+[system]#*{linux}*#
+
+You will use `Minikube` as a single-node {kube} cluster that runs locally in a virtual machine.
+For Minikube installation instructions see the https://github.com/kubernetes/minikube#installation[minikube installation instructions^]. Make sure to pay attention to the requirements as they vary by platform.
+
+****
+
+== Getting started
+
+The fastest way to work through this guide is to clone the Git repository and use the projects that are provided inside:
+
+[subs="attributes"]
+----
+git clone https://github.com/enozcan/guide-kubernetes-caching-hazelcast-spring.git
+cd guide-{projectid}
+----
+
+The `initial` directory contains the starting project that you will build upon.
+
+The `final` directory contains the finished project that you will build.
+
