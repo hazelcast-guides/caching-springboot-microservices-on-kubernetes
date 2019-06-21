@@ -314,10 +314,11 @@ And add a value to the map and then get the value:
 
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
 
-> curl "localhost:31000/get?key=key1"
-
+> while true; do curl localhost:31000/get?key=key1;echo; sleep 2; done
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
 	{"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
+        {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> the second pod's response
+        {"value":null,"podName":"hazelcast-spring-statefulset-0"} --> the first pod's response
 ----
 
 As can be seen, data is not shared between nodes. Here is where Hazelcast comes into action.
@@ -378,6 +379,8 @@ Members {size:2, ver:2} [
 	Member [10.1.0.53]:5701 - d963bb82-3842-49fd-a522-82c8543bdb9d
 ]
 ----
+If it's not seen, wait for  pods to be configured and try again.
+
 
 Now we expect all nodes to give the same value for the same key put on the map via one pod only. Let's try:
 
@@ -386,13 +389,12 @@ Now we expect all nodes to give the same value for the same key put on the map v
 
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
 
-> curl "http://localhost:31000/get?key=key1"
+> while true; do curl localhost:31000/get?key=key1;echo; sleep 2; done
 
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
-
-> curl "http://localhost:31000/get?key=key1"
-
+	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"} --> pod1 responsed
 	{"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"} --> pod0 responsed
+
 ----
 
 As can be seen, the insertion is made on hazelcast-spring-statefulset-1 but both nodes gives the same value for the key now.
@@ -412,13 +414,13 @@ Run following command to see the latest status of the pods
 kubectl get pods
 ```
 
-As you can see, a new pod `hazelcast-spring-statefulset-2` has joined to the cluster.
+As you can see, a new pod `hazelcast-caching-statefulset-2` has joined to the cluster.
 [source, role="no_copy"]
 ----
 NAME                              READY     STATUS    RESTARTS   AGE
-hazelcast-spring-statefulset-0   1/1       Running   0          8m
-hazelcast-spring-statefulset-1   1/1       Running   0          8m
-hazelcast-spring-statefulset-2   1/1       Running   0          31s
+hazelcast-caching-statefulset-0   1/1       Running   0          8m
+hazelcast-caching-statefulset-1   1/1       Running   0          8m
+hazelcast-caching-statefulset-2   1/1       Running   0          31s
 ----
 
 Run the following command again to see the output
@@ -426,24 +428,19 @@ Run the following command again to see the output
 ```
 while true; do curl http://localhost:31000/get?key=key1;echo; sleep 2; done
 ```
+----
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-2"}
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-0"}
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-2"}
 {"value":"hazelcast","podName":"hazelcast-spring-statefulset-1"}
-
-As you can see, `hazelcast-spring-statefulset-2` is returning correct data.
-
-[source, role="no_copy"]
 ----
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-1"}
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-2"}
-{"value":"hazelcast_springboot_openliberty","podName":"hazelcast-spring-statefulset-0"}
-----
+As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
+
 
 == Testing microservices that are running on {kube}
 
-Create a testing class under `final/src/test/java/it/io/spring/guides/hazelcast/`
-named `HazelcastCachingIT.java` .The contents of the test file is available under `finish` directoy.
+Create a testing class under `initial/src/test/java/it/io/spring/guides/hazelcast/`
+named `HazelcastCachingIT.java` .The contents of the test file is available under `final` directoy.
 
 Also change the pom.xml file for the tests:
 ----
@@ -486,9 +483,9 @@ Under dependencies:
 
 The test makes sure that the /put endpoint is handled by one pod and /get methods returns the same data from the other kubernetes pod.
 
-It first puts a key/value pair to hazelcast-spring microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
+It first puts a key/value pair to hazelcast-caching microservice and keeps podname in the firstpod variable. In the second part, tests submits multiple /get requests until to see that podname is different then the pod which initially handled /put request.
 
-In order to run integration tests, you must have a running hazelcast-spring microservices in minikube environment. As you have gone through all previous steps, you already have it.
+In order to run integration tests, you must have a running hazelcast-caching microservices in minikube environment. As you have gone through all previous steps, you already have it.
 
 navigate back to `initial` directory and run following:
 
@@ -504,7 +501,23 @@ mvn -Dtest=HazelcastCachingIT test
 If the tests pass, you’ll see a similar output to the following:
 
 ----
-< output here >
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running HazelcastCachingIT
+10:12:27.087 [Time-limited test] DEBUG org.springframework.web.client.RestTemplate - HTTP GET http://localhost:31000/put?key=key1&value=hazelcast-spring-guide
+10:12:27.175 [Time-limited test] DEBUG org.springframework.web.client.RestTemplate - Accept=[application/json, application/*+json]
+10:12:27.312 [Time-limited test] DEBUG org.springframework.web.client.RestTemplate - Response 200 OK
+...
+...
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.354 s - in HazelcastCachingIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+
 ----
 
 
