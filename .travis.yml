@@ -12,7 +12,7 @@ env:
     - MINIKUBE_HOME=$HOME
     - CHANGE_MINIKUBE_NONE_USER=true
     - KUBECONFIG=$HOME/.kube/config
-script:
+install:
 # Download kubectl, which is a requirement for using minikube.
 - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 # Download minikube.
@@ -21,6 +21,7 @@ script:
 - touch $KUBECONFIG
 - sudo minikube start --vm-driver=none --kubernetes-version=v1.13.0 
 - "sudo chown -R travis: /home/travis/.minikube/"
+script:
 - cd final
 # Create the docker images
 - mvn clean package -DskipTests 1>/dev/null
