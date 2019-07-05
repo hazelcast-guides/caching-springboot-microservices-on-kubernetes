@@ -219,12 +219,12 @@ Now we will use Hazelcast Caching among the pods. Update the pom.xml file by add
 <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>${hazelcast}</version>
+            <version>${version.hazelcast}</version>
 </dependency>
 <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-kubernetes</artifactId>
-            <version>${hazelcast-kubernetes}</version>
+            <version>${version.hazelcast-kubernetes}</version>
 </dependency>
 ----
 Then modify the CommandController.java such that Hazelcast is used in the map. Also add Hazelcast config to Application.java file and hazelcast libraries as well. 
