@@ -23,19 +23,21 @@ Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernete
 :framework: SpringBoot
 :framework-short: spring
 :github-address: https://github.com/enozcan/guide-kubernetes-caching-hazelcast-spring.git
+:templates-url: https://raw.githubusercontent.com/enozcan/adoc-templates/master
 
-include::templates/what-will-learn.adoc[]
+include::{templates-url}/what-will-learn.adoc[]
 
-include::templates/what-is-hz.adoc[]
+include::{templates-url}/what-is-hz.adoc[]
 
 == Why Spring Boot?
 
 Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".
 To learn more about Spring Boot, visit http://spring.io/projects/spring-boot
 
-include::templates/prereq.adoc[]
 
-include::templates/getting-started.adoc[]
+include::{templates-url}/prereq.adoc[]
+
+include::{templates-url}/getting-started.adoc[]
 
 
 == Running Spring Application 
@@ -151,9 +153,9 @@ $ > docker stop [CONTAINER-ID]
 ----
 
 
-include::templates/start-cluster.adoc[]
+include::{templates-url}/start-cluster.adoc[]
 
-include::templates/validate-kube-env.adoc[]
+include::{templates-url}/validate-kube-env.adoc[]
 
 After you're sure that a master node is ready, create kubernetes.yaml under `initial` directory with the same content in the `final/kubernetes.yaml` file.
 
@@ -395,6 +397,6 @@ If the tests pass, you’ll see a similar output to the following:
 
 ----
 
-include::templates/minikube-teardown.adoc[]
+include::{templates-url}/minikube-teardown.adoc[]
 
-include::templates/youre-done.adoc[]
+include::{templates-url}/youre-done.adoc[]
