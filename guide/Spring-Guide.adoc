@@ -84,7 +84,7 @@ To create the docker image of the application, add following line into pom.xml f
 <plugin>
     <groupId>com.spotify</groupId>
     <artifactId>dockerfile-maven-plugin</artifactId>
-    <version>1.4.9</version>
+    <version>${version.dockerfile-maven-plugin}</version>
     <configuration>
         <repository>${docker.image.prefix}/${project.artifactId}</repository>
     </configuration>
@@ -219,12 +219,12 @@ Now we will use Hazelcast Caching among the pods. Update the pom.xml file by add
 <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>3.11.2</version>
+            <version>${hazelcast}</version>
 </dependency>
 <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-kubernetes</artifactId>
-            <version>1.3.1</version>
+            <version>${hazelcast-kubernetes}</version>
 </dependency>
 ----
 Then modify the CommandController.java such that Hazelcast is used in the map. Also add Hazelcast config to Application.java file and hazelcast libraries as well. 
