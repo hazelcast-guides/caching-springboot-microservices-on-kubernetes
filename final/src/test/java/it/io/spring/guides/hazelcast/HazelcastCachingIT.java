@@ -39,6 +39,8 @@ public class HazelcastCachingIT {
         System.out.println("[TEST_LOG] Key : " + key);
         System.out.println("[TEST_LOG] Value : " + value);
 
+        String secondValue = "";
+
         //GET call to see data is coming from another pod
         String get_url = String.format(clusterUrl+"/get?key=%s", key);
 
@@ -46,10 +48,15 @@ public class HazelcastCachingIT {
             ResponseEntity<CommandResponse> getResponse = rest.getForEntity(get_url, CommandResponse.class);
             String secondPod = getResponse.getBody().getPodName();
             System.out.println("[TEST_LOG] Current pod : " + secondPod);
-            System.out.println("[TEST_LOG] Current value : " + getResponse.getBody.getValue());
-            if (!secondPod.equals(firstPod)) break; // we get the response from different pod so SUCCESS!!
+            System.out.println("[TEST_LOG] Current value : " + getResponse.getBody().getValue());
+            if (!secondPod.equals(firstPod)){
+                secondValue = getResponse.getBody().getValue();
+                
+              break; // we get the response from different pod so SUCCESS!!  
+            } 
             Thread.sleep(1000);
         }
+        Assert.assertEqual(secondValue, value);
     }
 
 }
