@@ -56,7 +56,7 @@ public class HazelcastCachingIT {
             } 
             Thread.sleep(1000);
         }
-        Assert.assertEqual(secondValue, value);
+        Assert.assertTrue(secondValue.equals(value));
     }
 
 }
