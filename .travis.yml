@@ -44,3 +44,6 @@ script:
 - while true; do  response=$(curl --write-out %{http_code} --silent --output /dev/null "http://localhost:31000/put?key=key1&value=hazelcast"); if [ $response -eq 200 ]; then break; fi; echo "waiting for pods"; sleep 8; done;
 # Apply integration test
 - mvn -Dtest=HazelcastCachingIT test
+after_script:
+- kubectl logs hazelcast-spring-statefulset-0
+- kubectl logs hazelcast-spring-statefulset-1
