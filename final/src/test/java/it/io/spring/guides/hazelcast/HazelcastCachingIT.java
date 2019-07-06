@@ -24,8 +24,8 @@ public class HazelcastCachingIT {
     @Test(timeout = 60000)
     public void testHazelcastCache() throws Exception {
 
-        String key = "key1";
-        String value = "hazelcast-spring-guide";
+        String key = "key3";
+        String value = "hazelcast-spring-guide-3";
 
         String put_url = String.format(clusterUrl +"/put?key=%s&value=%s", key, value);
         RestTemplate rest = new RestTemplate();
@@ -35,12 +35,18 @@ public class HazelcastCachingIT {
 
         String firstPod = putResponse.getBody().getPodName();
 
+        System.out.println("[TEST_LOG] First pod : " + firstPod);
+        System.out.println("[TEST_LOG] Key : " + key);
+        System.out.println("[TEST_LOG] Value : " + value);
+
         //GET call to see data is coming from another pod
         String get_url = String.format(clusterUrl+"/get?key=%s", key);
 
         while (true) { // it will try every second until it timeouts in 60 seconds
             ResponseEntity<CommandResponse> getResponse = rest.getForEntity(get_url, CommandResponse.class);
             String secondPod = getResponse.getBody().getPodName();
+            System.out.println("[TEST_LOG] Current pod : " + secondPod);
+            System.out.println("[TEST_LOG] Current value : " + getResponse.getBody.getValue());
             if (!secondPod.equals(firstPod)) break; // we get the response from different pod so SUCCESS!!
             Thread.sleep(1000);
         }
