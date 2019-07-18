@@ -25,7 +25,7 @@ Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernete
 :github-address: https://github.com/enozcan/guide-kubernetes-caching-hazelcast-spring.git
 :templates-url: https://raw.githubusercontent.com/enozcan/adoc-templates/master
 
-include::{templates-url}/link-to-repo[]
+include::{templates-url}/link-to-repo.adoc[]
 
 include::{templates-url}/what-will-learn.adoc[]
 
