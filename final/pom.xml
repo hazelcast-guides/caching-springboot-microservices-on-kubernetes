@@ -31,27 +31,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
 
-                <!-- test executions -->
-                <executions>
-                        <execution>
-                            <id>pre-integration-test</id>
-                            <goals>
-                                <goal>start</goal>
-                            </goals>
-                            <configuration>
-                                <skip>true</skip>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>post-integration-test</id>
-                            <goals>
-                                <goal>stop</goal>
-                            </goals>
-                            <configuration>
-                                <skip>true</skip>
-                            </configuration>
-                        </execution>
-                </executions>
+               
 
             </plugin>
             
@@ -111,12 +91,6 @@
             <artifactId>hazelcast-kubernetes</artifactId>
             <version>${version.hazelcast-kubernetes}</version>
     </dependency>
-
-    <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-    </dependency>
-
     
     <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
