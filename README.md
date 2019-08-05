@@ -4,6 +4,3 @@
 
 Hazelcast Guides - SpringBoot
 
-See the guide [here.](http://35.188.138.168.xip.io/2019/07/18/hazelcast-caching-in-springboot/)
-
-You can try it out online on [Katacoda!](https://www.katacoda.com/enesozcan)
