@@ -1,20 +1,7 @@
-:projectid: kubernetes-caching-hazelcast-spring
-:page-layout: guide
-:page-duration: 15 minutes
-:page-releasedate: 2019-06-20
-:page-description: Explore how to use caching in microservices within Kubernetes environment.
-:page-tags: ['Hazelcast', 'Caching', 'Microservices', 'Kubernetes', 'Containers','Spring Boot' , 'Minikube']
-:page-related-guides: ['docker', 'kubernetes-intro']
-:source-highlighter: prettify
-:page-seo-title: Caching in microservices with Hazelcast Tutorial
-:page-seo-description: How to use Hazelcast with microservices
-= Caching Microservices with Hazelcast in Kubernetes
-
-Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernetes
-
 :minikube-ip: 192.168.99.100
 :kube: Kubernetes
 :project-id: kubernetes-caching-hazelcast-spring
+:project-folder: caching-springboot-microservices-on-kubernetes
 :hashtag: #
 :win: WINDOWS
 :mac: MAC
@@ -22,22 +9,23 @@ Use Hazelcast Caching in Spring Boot based Microservices and deploy to Kubernete
 :hazelcast: Hazelcast
 :framework: SpringBoot
 :framework-short: spring
-:github-address: https://github.com/enozcan/guide-kubernetes-caching-hazelcast-spring.git
-:templates-url: https://raw.githubusercontent.com/enozcan/adoc-templates/master
+:github-address: https://github.com/hazelcast-guides/caching-springboot-microservices-on-kubernetes
+:templates-url: https://raw.githubusercontent.com/hazelcast-guides/adoc-templates/master
+
+= Caching SpringBoot Microservices with Hazelcast in Kubernetes
 
 include::{templates-url}/link-to-repo.adoc[]
 
-include::{templates-url}/what-will-learn.adoc[]
+include::{templates-url}/what-will-learn-caching-ms.adoc[]
 
 include::{templates-url}/what-is-hz.adoc[]
 
 == Why Spring Boot?
 
 Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".
-To learn more about Spring Boot, visit http://spring.io/projects/spring-boot
+To learn more about Spring Boot, visit http://spring.io/projects/spring-boot[website.]
 
-
-include::{templates-url}/prereq.adoc[]
+include::{templates-url}/prereq-caching-ms.adoc[]
 
 include::{templates-url}/getting-started.adoc[]
 
@@ -61,7 +49,6 @@ Run the application:
 $ > java -jar target/hazelcast-spring-app-0.1.0.jar
 ----
 
-
 Now your app is runnning on localhost:8080. You can test by following requests:
 
 ----
@@ -70,27 +57,30 @@ $ > curl "localhost:8080/put?key=key1&value=hazelcast"
 $ > curl "localhost:8080/get?key=key1"
 ----
 
-This part was an introduction of the applicaiton. You can stop your application by CTRL + C.
+This part was the introduction of the application. You can stop your application by CTRL + C.
 
 == Dockerizing the App
 
 To create the docker image of the application, add following line into pom.xml file.
 
-*Under properties:*
 ----
-<docker.image.prefix>springio</docker.image.prefix>
-----
+<!-- add among other properties -->
+<properties> 
+ 	<docker.image.prefix>springio</docker.image.prefix>
+</properties>
 
-*Under plugins:*
-----
+<!-- add among other plugins -->
+<plugins>
 <plugin>
-    <groupId>com.spotify</groupId>
-    <artifactId>dockerfile-maven-plugin</artifactId>
-    <version>${version.dockerfile-maven-plugin}</version>
-    <configuration>
-        <repository>${docker.image.prefix}/${project.artifactId}</repository>
-    </configuration>
+      <groupId>com.spotify</groupId>
+      <artifactId>dockerfile-maven-plugin</artifactId>
+      <version>${version.dockerfile-maven-plugin}</version>
+      <configuration>       
+         <repository>${docker.image.prefix}/${project.artifactId}</repository>
+      </configuration> 
 </plugin>
+</plugins>
+
 ----
 
 Then create the Dockerfile under `initial` directory named "Dockerfile" containing the instructions for creating a docker image:
@@ -108,7 +98,7 @@ ADD ${JAR_FILE} hazelcast-spring-demo.jar
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/hazelcast-spring-demo.jar"]
 ----
 
-To create the Docker image of the app, first rebuild the app:
+Before creating the Docker image of the app, first rebuild the app: 
 ----
 $ > mvn clean package
 ----
@@ -143,8 +133,7 @@ $ > curl "localhost:5000/put?key=key1&value=hazelcast"
 $ > curl "localhost:5000/get?key=key1"
 ----
 
-If you see the same responses as the ones you get when the app is run without container, that means it's all OK with the image.
-
+If you see the same responses as the ones you get when the app is run without container, that means it’s all OK with the image.
 To stop the container, get the container ID first:
 ----
 $ > docker ps
@@ -154,17 +143,13 @@ Then find the application's container ID and stop the container:
 $ > docker stop [CONTAINER-ID]
 ----
 
-
 include::{templates-url}/start-cluster.adoc[]
 
 include::{templates-url}/validate-kube-env.adoc[]
 
-After you're sure that a master node is ready, create kubernetes.yaml under `initial` directory with the same content in the `final/kubernetes.yaml` file.
-
-This file defines two {kube} resources: one statefulset and one service. 
-StatefulSet is preferred solution for Hazelcast because it enables controlled scale out/in of your microservices 
-for easy data distribution. To learn more about StatefulSet, you can visit Kubernetes documentation
-https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/
+After you’re sure that a master node is ready, create kubernetes.yaml under initial directory with the same content in the final/kubernetes.yaml file.
+This file defines two Kubernetes resources: one statefulset and one service. StatefulSet is preferred solution for Hazelcast because it enables controlled scale out/in of your microservices for easy data distribution. To learn more about StatefulSet, you can 
+visit https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/[Kubernetes documentation.]
 
 By default, we create 2 replicas of `hazelcast-spring` microservice behind the `hazelcast-spring-service` which forwards
 requests to one of the pods available in the kubernetes cluster.
@@ -229,6 +214,7 @@ Now we will use Hazelcast Caching among the pods. Update the pom.xml file by add
             <version>${version.hazelcast-kubernetes}</version>
 </dependency>
 ----
+
 Then modify the CommandController.java such that Hazelcast is used in the map. Also add Hazelcast config to Application.java file and hazelcast libraries as well. 
 Those versions are the ones under `final` folder.
 
@@ -244,8 +230,6 @@ Before deploying on kubernetes, create rbac.yaml file as in the `final` director
 Run the following commands to deploy the resources as defined in kubernetes.yaml and rbac.yaml in the specified order:
 ----
 $ > kubectl apply -f rbac.yaml
-----
-----
 $ > kubectl apply -f kubernetes.yaml
 ----
 
@@ -267,7 +251,6 @@ Members {size:2, ver:2} [
 ]
 ----
 If it's not seen, wait for  pods to be configured and try again.
-
 
 Now we expect all nodes to give the same value for the same key put on the map via one pod only. Let's try:
 
@@ -323,47 +306,10 @@ $ > while true; do curl http://localhost:31000/get?key=key1;echo; sleep 2; done
 ----
 As you can see, `hazelcast-caching-statefulset-2` is returning correct data.
 
-
-== Testing microservices that are running on {kube}
+== Testing microservices running on {kube}
 
 Create a testing class under `initial/src/test/java/it/io/spring/guides/hazelcast/`
-named `HazelcastCachingIT.java` .The contents of the test file is available under `final` directoy.
-
-Also change the pom.xml file for the tests:
-
-*Under spring-boot-maven-plugin:*
-----
-<!-- test executions -->
-<executions>
-        <execution>
-            <id>pre-integration-test</id>
-            <goals>
-                <goal>start</goal>
-            </goals>
-            <configuration>
-                <skip>true</skip>
-            </configuration>
-        </execution>
-        <execution>
-            <id>post-integration-test</id>
-            <goals>
-                <goal>stop</goal>
-            </goals>
-            <configuration>
-                <skip>true</skip>
-            </configuration>
-        </execution>
-</executions>
-
-----
-
-*Under dependencies:*
-----
-<dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-</dependency>
-----
+named `HazelcastCachingIT.java` .The contents of the test file is available under `final` directory.
 
 The test makes sure that the */put* endpoint is handled by one pod and */get* methods returns the same data from the other kubernetes pod.
 
@@ -401,4 +347,4 @@ If the tests pass, you’ll see a similar output to the following:
 
 include::{templates-url}/minikube-teardown.adoc[]
 
-include::{templates-url}/youre-done.adoc[]
+include::{templates-url}/youre-done-caching-ms.adoc[]
