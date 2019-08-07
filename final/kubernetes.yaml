@@ -20,8 +20,8 @@ spec:
           image: hazelcast-spring-demo:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - name: tomcatm
-              containerPort: 8080
+          - containerPort: 5701
+          - containerPort: 8080
           env:
             - name: MY_POD_NAME
               valueFrom:
