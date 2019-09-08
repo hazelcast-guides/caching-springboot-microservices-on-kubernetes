@@ -1,4 +1,4 @@
-package guides.hazelcast.spring;
+package app;
 
 @SuppressWarnings("unused")
 public class CommandResponse {

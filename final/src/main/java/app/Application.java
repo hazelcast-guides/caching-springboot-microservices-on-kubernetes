@@ -1,4 +1,4 @@
-package guides.hazelcast.spring;
+package app;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.JoinConfig;

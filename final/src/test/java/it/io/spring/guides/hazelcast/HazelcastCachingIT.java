@@ -1,5 +1,6 @@
+package it.io.spring.guides.hazelcast;
 
-import guides.hazelcast.spring.CommandResponse;
+import app.CommandResponse;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
