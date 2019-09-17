@@ -1,3 +1,4 @@
+package it.guides.hazelcast.spring;
 
 import guides.hazelcast.spring.CommandResponse;
 
