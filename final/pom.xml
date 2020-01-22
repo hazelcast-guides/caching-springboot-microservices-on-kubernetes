@@ -19,7 +19,7 @@
     <properties>
         <java.version>1.8</java.version>
         <docker.image.prefix>springio</docker.image.prefix>
-        <version.hazelcast>3.12.3</version.hazelcast>
+        <version.hazelcast>3.12.5</version.hazelcast>
         <version.hazelcast-kubernetes>1.5.1</version.hazelcast-kubernetes>
         <version.dockerfile-maven-plugin>1.4.12</version.dockerfile-maven-plugin>
     </properties>
